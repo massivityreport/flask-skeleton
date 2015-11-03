@@ -12,7 +12,7 @@ from flask.ext.security import Security, PeeweeUserDatastore, \
     UserMixin, RoleMixin, login_required
 
 from model import db, User, Role, UserRoles
-import template_filters
+import filters
 from forms import *
 
 # Create app
@@ -30,7 +30,7 @@ user_datastore = PeeweeUserDatastore(db, User, Role, UserRoles)
 security = Security(app, user_datastore)
 
 # template filters
-app.register_blueprint(template_filters.blueprint)
+app.register_blueprint(filters.blueprint)
 
 @app.route("/")
 @login_required
