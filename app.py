@@ -2,31 +2,41 @@
 
 import json
 import argparse
-
+import sys
+import traceback
+import datetime
+from collections import defaultdict
 
 from flask import Flask
-from flask import render_template, request, redirect, url_for, flash, abort
+from flask import render_template
+from flask import request
+from flask import redirect
+from flask import url_for
+from flask import flash
+from flask import abort
 from flask import Response
-from peewee import *
-from flask.ext.security import Security, PeeweeUserDatastore, \
-    UserMixin, RoleMixin, login_required
 
-from model import db, User, Role, UserRoles
+from flask_security import Security
+from flask_security import SQLAlchemyUserDatastore
+from flask_security import UserMixin
+from flask_security import RoleMixin
+from flask_security import login_required
+
+from model import db
+from model import User
+from model import Role
+
 import filters
 from forms import *
 
 # Create app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret'
-app.config['DATABASE'] = {
-    'name': 'app.db',
-    'engine': 'peewee.SqliteDatabase',
-}
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
-app.config['SECURITY_PASSWORD_SALT'] = 'super-secret'
+app.config['SECURITY_PASSWORD_SALT'] = 'scoupon-secret'
 
 # Setup Flask-Security
-user_datastore = PeeweeUserDatastore(db, User, Role, UserRoles)
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 # template filters

@@ -3,24 +3,20 @@
 import json
 import argparse
 
-from flask import Flask
-from model import db, User, Role, UserRoles
-from flask.ext.security import PeeweeUserDatastore
+from app import app
+from model import db, User, Role, Monitoring, Campaign
+from flask.ext.security import SQLAlchemyUserDatastore
 
-# Create app
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'super-secret'
-app.config['DATABASE'] = {
-    'name': 'app.db',
-    'engine': 'peewee.SqliteDatabase',
-}
-user_datastore = PeeweeUserDatastore(db, User, Role, UserRoles)
+
+def create_tables():
+    db.create_all(app=app)
+
 
 def create_user():
-    for Model in (Role, User, UserRoles):
-        Model.drop_table(fail_silently=True)
-        Model.create_table(fail_silently=True)
+    user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     user_datastore.create_user(email='admin', password='admin')
+    db.session.commit()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the web ui')
@@ -29,5 +25,8 @@ if __name__ == '__main__':
 
     # Go !
     app.config['UI'] = json.load(open(args.configuration_file))
-    db.init(app.config['UI']['database'])
+    app.config.update(app.config['UI']['database'])
+    db.init_app(app)
+    db.app = app
+    create_tables()
     create_user()

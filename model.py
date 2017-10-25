@@ -1,28 +1,27 @@
-from peewee import *
-from flask.ext.security import UserMixin, RoleMixin
+from flask_sqlalchemy import SQLAlchemy
+from flask_security import UserMixin
+from flask_security import RoleMixin
 
 # Create database connection object
-db = SqliteDatabase(None)
+db = SQLAlchemy()
 
-class BaseModel(Model):
-    class Meta:
-        database = db
+# Define models
+roles_users = db.Table('userroles',
+        db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+        db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
-class Role(BaseModel, RoleMixin):
-    name = CharField(unique=True)
-    description = TextField(null=True)
 
-class User(BaseModel, UserMixin):
-    email = TextField()
-    password = TextField()
-    active = BooleanField(default=True)
-    confirmed_at = DateTimeField(null=True)
+class Role(db.Model, RoleMixin):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
 
-class UserRoles(BaseModel):
-    # Because peewee does not come with built-in many-to-many
-    # relationships, we need this intermediary class to link
-    # user to roles.
-    user = ForeignKeyField(User, related_name='roles')
-    role = ForeignKeyField(Role, related_name='users')
-    name = property(lambda self: self.role.name)
-    description = property(lambda self: self.role.description)
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(255))
+    active = db.Column(db.Boolean())
+    confirmed_at = db.Column(db.DateTime())
+    roles = db.relationship('Role', secondary=roles_users,
+                            backref=db.backref('users', lazy='dynamic'))
