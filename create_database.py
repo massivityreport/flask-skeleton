@@ -20,7 +20,7 @@ def create_user():
     for Model in (Role, User, UserRoles):
         Model.drop_table(fail_silently=True)
         Model.create_table(fail_silently=True)
-    user_datastore.create_user(email='scoupon', password='Phoenix85001')
+    user_datastore.create_user(email='admin', password='admin')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run the web ui')
